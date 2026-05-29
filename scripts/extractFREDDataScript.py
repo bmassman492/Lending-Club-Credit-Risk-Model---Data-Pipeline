@@ -1,13 +1,25 @@
+import io
 import os
 import boto3
+import pandas as pd
 import snowflake.connector
 from botocore.exceptions import ClientError
+from fredapi import Fred
 
 
 def extract_data():
-    local_path = "/opt/airflow/data/lending_club_raw.csv"
-    bucket = os.getenv("S3_BUCKET")
-    s3_key = "Raw_LC_Data.csv"
+    fred = Fred(api_key=os.getenv("FRED_API_KEY"))
+
+    series_ids = ["UNRATE", "GDP", "FEDFUNDS", "CPIAUCSL", "MORTGAGE30US", "PSAVERT"]
+    start_date = "2006-01-01"
+
+    df = pd.DataFrame()
+    for series_id in series_ids:
+        df[series_id] = fred.get_series(series_id, observation_start=start_date)
+
+    df = df.ffill().dropna()
+    df.index.name = "DATE"
+    df = df.reset_index()
 
     s3 = boto3.client(
         "s3",
@@ -16,14 +28,15 @@ def extract_data():
         region_name=os.getenv("AWS_DEFAULT_REGION"),
     )
 
-    try:
-        s3.head_object(Bucket=bucket, Key=s3_key)
-        return
-    except ClientError as e:
-        if e.response["Error"]["Code"] != "404":
-            raise
+    csv_buffer = io.StringIO()
+    df.to_csv(csv_buffer, index=False)
 
-    s3.upload_file(local_path, bucket, s3_key)
+    s3.put_object(
+        Bucket=os.getenv("S3_BUCKET"),
+        Key="FRED_Macro_Data.csv",
+        Body=csv_buffer.getvalue().encode("utf-8"),
+    )
+
 
 def transfer_data():
     bucket = os.getenv("S3_BUCKET")
@@ -43,7 +56,7 @@ def transfer_data():
         cur = conn.cursor()
 
         cur.execute("""
-            CREATE FILE FORMAT IF NOT EXISTS lc_csv_format
+            CREATE FILE FORMAT IF NOT EXISTS fred_csv_format
                 TYPE = CSV
                 PARSE_HEADER = TRUE
                 FIELD_OPTIONALLY_ENCLOSED_BY = '"'
@@ -51,30 +64,33 @@ def transfer_data():
         """)
 
         cur.execute(f"""
-            CREATE STAGE IF NOT EXISTS lc_s3_stage
+            CREATE STAGE IF NOT EXISTS fred_s3_stage
                 URL = 's3://{bucket}/'
                 CREDENTIALS = (AWS_KEY_ID = '{aws_key}' AWS_SECRET_KEY = '{aws_secret}')
-                FILE_FORMAT = lc_csv_format
+                FILE_FORMAT = fred_csv_format
         """)
 
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS RAW_LC_DATA
+            CREATE TABLE IF NOT EXISTS RAW_FRED_DATA
                 USING TEMPLATE (
                     SELECT ARRAY_AGG(OBJECT_CONSTRUCT(*))
                     FROM TABLE(
                         INFER_SCHEMA(
-                            LOCATION => '@lc_s3_stage/Raw_LC_Data.csv',
-                            FILE_FORMAT => 'lc_csv_format'
+                            LOCATION => '@fred_s3_stage/FRED_Macro_Data.csv',
+                            FILE_FORMAT => 'fred_csv_format'
                         )
                     )
                 )
         """)
 
+        cur.execute("TRUNCATE TABLE RAW_FRED_DATA")
+
         cur.execute("""
-            COPY INTO RAW_LC_DATA
-                FROM @lc_s3_stage/Raw_LC_Data.csv
-                FILE_FORMAT = lc_csv_format
+            COPY INTO RAW_FRED_DATA
+                FROM @fred_s3_stage/FRED_Macro_Data.csv
+                FILE_FORMAT = fred_csv_format
                 MATCH_BY_COLUMN_NAME = CASE_INSENSITIVE
+                FORCE = TRUE
                 ON_ERROR = ABORT_STATEMENT
         """)
     finally:

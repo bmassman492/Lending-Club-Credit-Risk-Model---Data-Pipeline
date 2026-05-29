@@ -51,7 +51,7 @@ CREATE SCHEMA IF NOT EXISTS credit_risk_assessment_db.transformed;
 
 ## Docker/Airflow Setup
 
-1) Ensure Docker is installed (https://www.docker.com/):
+1) Ensure Docker is installed (https://www.docker.com/) and running:
 ```bash
 docker compose version
 ```
@@ -67,4 +67,15 @@ docker compose up -d
 Creating the docker-compose.yaml file with Airflow image (This doesn't need to be done again, as the .yaml file is already in the repository):
 ```bash
 curl -LfO 'https://airflow.apache.org/docs/apache-airflow/2.10.5/docker-compose.yaml'
+```
+Testing a task in airflow dag:
+```bash
+docker compose exec airflow-scheduler airflow tasks test dag_id task_name todays_date
+```
+
+Navigating to schema in snowflake:
+```bash
+USE WAREHOUSE warehouse_name;
+USE DATABASE database_name;
+USE SCHEMA schema_name;
 ```

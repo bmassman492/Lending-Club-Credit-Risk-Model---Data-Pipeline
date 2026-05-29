@@ -4,4 +4,6 @@ __pycache__/
 *.pyc
 *.egg-info/
 mlruns/
-
+credit_risk_dbt/target/
+credit_risk_dbt/dbt_packages/
+credit_risk_dbt/logs/
