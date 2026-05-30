@@ -4,4 +4,4 @@ fredapi==0.5.2
 requests==2.33.1
 boto3==1.42.84
 pandas==2.3.3
-dbt-snowflake=1.11.5
+dbt-snowflake==1.11.5

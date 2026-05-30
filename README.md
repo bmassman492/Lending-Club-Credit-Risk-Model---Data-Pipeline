@@ -48,6 +48,7 @@ CREATE SCHEMA IF NOT EXISTS credit_risk_assessment_db.raw;
 ```sql
 CREATE SCHEMA IF NOT EXISTS credit_risk_assessment_db.transformed;
 ```
+7) Get a FRED API key at https://fred.stlouisfed.org/docs/api/api_key.html and assine it to FRED_API_KEY
 
 ## Docker/Airflow Setup
 
@@ -61,7 +62,14 @@ docker compose build
 docker compose up airflow-init
 docker compose up -d 
 ```
-3) View Airflow dags interface at localhost:8080 (log in using Airflow username and password from .env)
+## Running ELT Pipeline
+
+Once all environment variables have been set up and the docker container is running, extract, load, and transform the data by triggering the dags at the airflow UI (localhost:8080). 
+
+Order: LendingClubData >> FREDMacroeconomicData >> dbt_transform
+
+FREDMacroeconomicData and dbt_transform can be set to monthly recurrance or manually retriggered to ensure current macroeconomic data
+
 
 # References
 Creating the docker-compose.yaml file with Airflow image (This doesn't need to be done again, as the .yaml file is already in the repository):

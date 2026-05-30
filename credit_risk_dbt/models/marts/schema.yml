@@ -1,0 +1,29 @@
+version: 2
+
+models:
+  - name: dim_fred_macro_indicators
+    columns:
+      - name: date
+        tests:
+          - not_null
+          - unique
+
+  - name: fact_loans
+    columns:
+      - name: loan_id
+        tests:
+          - not_null
+          - unique
+      - name: loan_status
+        tests:
+          - not_null
+      - name: loan_issue_date
+        tests:
+          - not_null
+      - name: loan_amount
+        tests:
+          - not_null
+      - name: loan_term
+        tests:
+          - accepted_values:
+              values: ['36 months', '60 months']
