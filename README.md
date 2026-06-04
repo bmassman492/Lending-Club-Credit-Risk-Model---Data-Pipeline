@@ -1,18 +1,18 @@
 # Lending Club Credit Risk Model - Data Pipeline
 
 ## Project Overview
-This project seeks to cover the entire data engineering pipeline and deliver a credit risk assessment model to lenders. The model will be a predictive machine learning model trained on real loans issued by Lending Club, with the target variable being loan outcome (how effectively the loan was paid off), as well as real macroeconomic time series data. 
+This project seeks to cover the entire data engineering pipeline and deliver a credit risk assessment model to lenders. The model will be a predictive XGBoost model trained on real loans issued by Lending Club and well as real macroeconomic time series data. The target variable is loan outcome, specifically if the borrower is likely to charge off the loan (outcome 1), or pay it off in full (outcome 0). 
 
 ## Data Sources
 
 Lending Club real loan data: https://www.kaggle.com/datasets/wordsforthewise/lending-club
 
-
+FRED Macroeconomic Time-Series data: https://fred.stlouisfed.org/docs/api/fred/
 
 
 # How To Run
 
-This is a portfolio project, but it can be run if desired using the following steps:
+This is a portfolio project, but it can be run if desired by cloning the repository and following the below steps. To run the entire data ELT pipeline and model training process, continue from 'setting up .env'. To solely use the model/API, skip to model/API use
 
 ## Setting up .env
 
@@ -70,12 +70,36 @@ Order: LendingClubData >> FREDMacroeconomicData >> dbt_transform
 
 FREDMacroeconomicData and dbt_transform can be set to monthly recurrance or manually retriggered to ensure current macroeconomic data
 
+## Training The Model
+
+Build the ml-trainer docker image:
+```bash
+docker compose build ml-trainer
+```
+
+Finally, train the model. The code for saving the model is commented out, as the model is already saved in this repository at ml/model.pkl and ml/model_config.pkl
+```bash
+docker compose --profile ml run --rm ml-trainer
+```
+
+## Model/API Use
+1) If skipping to this step, ensure that docker is installed (https://www.docker.com/) and running:
+```bash
+docker compose version
+```
+
+2) Build the api docker image:
+```bash
+
+```
+
 
 # References
 Creating the docker-compose.yaml file with Airflow image (This doesn't need to be done again, as the .yaml file is already in the repository):
 ```bash
 curl -LfO 'https://airflow.apache.org/docs/apache-airflow/2.10.5/docker-compose.yaml'
 ```
+
 Testing a task in airflow dag:
 ```bash
 docker compose exec airflow-scheduler airflow tasks test dag_id task_name todays_date

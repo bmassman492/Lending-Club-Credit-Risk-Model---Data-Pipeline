@@ -244,5 +244,16 @@ services:
       _PIP_ADDITIONAL_REQUIREMENTS: ''
     user: "0:0"
 
+  ml-trainer:
+    build:
+      context: ./ml
+      dockerfile: Dockerfile
+    env_file:
+      - ${ENV_FILE_PATH:-.env}
+    volumes:
+      - ./ml:/artifacts
+    profiles:
+      - ml
+
 volumes:
   postgres-db-volume:
