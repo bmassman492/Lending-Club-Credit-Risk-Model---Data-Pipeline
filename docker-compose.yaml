@@ -251,9 +251,18 @@ services:
     env_file:
       - ${ENV_FILE_PATH:-.env}
     volumes:
-      - ./ml:/artifacts
+      - ./ml:/ml
     profiles:
       - ml
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    volumes:
+      - ./ml:/ml
+    ports:
+      - "8000:8000"
 
 volumes:
   postgres-db-volume:
