@@ -27,7 +27,46 @@ FRED Macroeconomic data is acquired through an API hosted by the Federal Reserve
 
 ## File Structure
 
-
+```
+├── api/
+│   ├── app.py
+│   ├── Dictionary.md
+│   ├── Dockerfile
+│   └── requirements.txt
+├── config/
+│   └── airflow.cfg
+├── credit_risk_dbt/
+│   ├── dbt_project.yml
+│   ├── profiles.yml
+│   └── models/
+│       ├── staging/
+│       │   ├── stg_lending_club.sql
+│       │   ├── stg_fred_macroeconomic_data.sql
+│       │   ├── schema.yml
+│       │   └── _sources.yml
+│       └── marts/
+│           ├── fact_loans.sql
+│           ├── dim_fred_macro_indicators.sql
+│           └── schema.yml
+├── dags/
+│   ├── LendingClubData.py
+│   ├── FREDMacroeconomic.py
+│   └── TransformData.py
+├── ml/
+│   ├── Dockerfile
+│   ├── model.pkl
+│   ├── model_config.pkl
+│   ├── requirements.txt
+│   ├── train.py
+│   └── trainModel.ipynb
+├── scripts/
+│   ├── extractLendingClubDataScript.py
+│   └── extractFREDDataScript.py
+├── .env.example
+├── docker-compose.yaml
+├── Dockerfile
+└── requirements.txt
+```
 
 # How To Run
 
